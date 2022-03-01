@@ -8,6 +8,7 @@ from tensorflow.keras.optimizers import *
 from tensorflow.keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from tensorflow.keras import backend as kera
 from tensorflow.keras import layers, Sequential
+import matplotlib.pyplot as plt
 
 #Unet is the "masque" models
 
@@ -81,4 +82,12 @@ def create_data_augmentation_model(random_flip="horizontal", random_rotation=0.0
             layers.RandomFlip(random_flip),
             layers.RandomRotation(random_rotation),
             ])
+    return model
+
+def join_unet_augm_models(unet_model, augmentation_model):
+    model = Sequential([
+        unet_model,
+        augmentation_model
+                ])
+    model.compile(optimizer = Adam(learning_rate = 1e-4), loss = 'mse')
     return model
