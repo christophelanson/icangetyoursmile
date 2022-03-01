@@ -115,3 +115,17 @@ def unet_small(pretrained_weights = None,input_size = (64,64,3)):
         model.load_weights(pretrained_weights)
 
     return model
+
+
+def create_data_augmentation_model(random_flip="horizontal", random_rotation=0.03):
+    """
+    creates a model of data augmentation using Sequential
+    hyperparameters :
+    random_flip = "horizontal" "vertical" "horizontal and vertical"
+    random_rotation = 0.03 (0.03 == 3% x 360°)
+    """
+    model = Sequential([
+            layers.RandomFlip(random_flip),
+            layers.RandomRotation(random_rotation),
+            ])
+    return model
