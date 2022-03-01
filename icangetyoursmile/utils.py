@@ -3,6 +3,7 @@ import PIL
 from PIL import Image
 import os
 from tensorflow.keras.utils import image_dataset_from_directory
+from tensorflow.keras.models import load_model
 
 
 ## Absolute path to images ##
@@ -75,3 +76,17 @@ def create_train_val_dataset(path_to_images,
     )
 
     return X_train_dataset, X_val_dataset, y_train_dataset, y_val_dataset
+
+
+def save_model(model, model_name):
+    """
+    Save the model in saved_models folder.
+    Enter a model and a model name as a string
+    """
+    model.save(f'../../saved_models/{model_name}')
+
+def loading_model(model_name):
+    """
+    Load the model in saved_model folder.
+    """
+    return load_model(f'../../saved_models/{model_name}')
