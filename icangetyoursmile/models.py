@@ -82,3 +82,10 @@ def create_data_augmentation_model(random_flip="horizontal", random_rotation=0.0
             layers.RandomRotation(random_rotation),
             ])
     return model
+
+def save_model(model, model_name):
+    """
+    Save the model in saved_model folder.
+    Enter a model and a model name as a string
+    """
+    model.save(f'../../saved_model/{model_name}')
