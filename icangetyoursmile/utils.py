@@ -7,12 +7,12 @@ from tensorflow.keras.utils import image_dataset_from_directory
 
 ## Absolute path to images ##
 
-absolute_path = os.path.dirname(os.path.dirname(os.getcwd()))
-path = absolute_path + "/raw_data/"
+#absolute_path = os.path.dirname(os.path.dirname(os.getcwd()))
+#path = absolute_path + "/raw_data/"
 
 ## Fonction to create train and validation datasets for X (No_mask images) and y(Mask images), return 4 datasets
 
-def create_train_val_dataset(path_to_image,
+def create_train_val_dataset(path_to_images,
                              image_size=(64,64),
                              batch_size=32,
                              validation_split=0.2,

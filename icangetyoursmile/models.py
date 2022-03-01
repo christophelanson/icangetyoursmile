@@ -7,6 +7,7 @@ from tensorflow.keras.layers import *
 from tensorflow.keras.optimizers import *
 from tensorflow.keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from tensorflow.keras import backend as kera
+from tensorflow.keras import layers, Sequential
 
 #Unet is the "masque" models
 
@@ -50,12 +51,16 @@ def unet(starting_power = 3,pretrained_weights = None,input_size = (64,64,3)):
     merge9 = concatenate([conv1,up9], axis = 3)
     conv9 = Conv2D(factor, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(merge9)
     conv9 = Conv2D(factor, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
-    conv9 = Conv2D(2, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
-    conv10 = Conv2D(1, 1, activation = 'sigmoid')(conv9)
+
+
+ #   conv9 = Conv2D(2, 3, activation = 'relu', padding = 'same', kernel_initializer = 'he_normal')(conv9)
+ #   conv10 = Conv2D(1, 1, activation = 'sigmoid')(conv9)
+    conv10 = Conv2D(3, 1, activation = 'linear')(conv9)
+
 
     model = Model(inputs = inputs, outputs = conv10)
 
-    model.compile(optimizer = Adam(learning_rate = 1e-4), loss = 'binary_crossentropy', metrics = ['accuracy'])
+    model.compile(optimizer = Adam(learning_rate = 1e-4), loss = 'mse')
 
     #model.summary()
 
