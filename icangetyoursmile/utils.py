@@ -229,7 +229,7 @@ def run_full_model(model_name, sample_size=500, epochs=50, image_size=(64,64), r
     absolute_path = os.path.dirname(os.path.dirname(os.getcwd()))
     path = absolute_path + "/raw_data"
 
-    X, y, X_test, y_test, X_visu, y_visu = get_dataset(path, sample_size=sample_size, image_size=(64,64), random_seed=1, test_split=0.15)
+    X, y, X_test, y_test, X_visu, y_visu = get_dataset_tts(path, sample_size=sample_size, image_size=(64,64), random_seed=1, test_split=0.15)
 
     model = join_unet_augm_models(unet(),create_data_augmentation_model())
 
