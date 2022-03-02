@@ -229,13 +229,13 @@ def run_full_model(model_name, sample_size=500, epochs=50, image_size=(64,64), r
     absolute_path = os.path.dirname(os.path.dirname(os.getcwd()))
     path = absolute_path + "/raw_data"
 
-    X, y, X_test, y_test, X_visu, y_visu = get_dataset_tts(path, sample_size=sample_size, image_size=(64,64), random_seed=1, test_split=0.15)
+    X, y, X_test, y_test, X_visu, y_visu = get_dataset_tts(path, sample_size=sample_size, image_size=image_size, random_seed=random_seed, test_split=test_split)
 
     model = join_unet_augm_models(unet(),create_data_augmentation_model())
 
-    results = model.fit(X, y, batch_size=8, epochs=epochs, use_multiprocessing=True, validation_split=0.2)
-    y_pred = model.predict(X_test).astype(np.uint8)
-    score = model.evaluate(X_test, y_pred)
+    results = model.fit(X, y, batch_size=batch_size, epochs=epochs, use_multiprocessing=True, validation_split=validation_split)
+    #y_pred = model.predict(X_test).astype(np.uint8)
+    score = model.evaluate(X_test, y_test)
     y_pred_visu = model.predict(X_visu).astype(np.uint8)
     plot_results(X_visu, y_pred_visu)
     plot_loss(results)
