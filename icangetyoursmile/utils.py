@@ -3,6 +3,7 @@ import PIL
 from PIL import Image
 import os
 from tensorflow.keras.utils import image_dataset_from_directory
+import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
 import random
 
@@ -130,6 +131,22 @@ def create_train_val_dataset(path_to_images,
     return X_train_dataset, X_val_dataset, y_train_dataset, y_val_dataset
 
 
+def plot_loss(history, title=None):
+    fig, ax = plt.subplots(1,2, figsize=(20,7))
+
+    # --- LOSS ---
+
+    ax[0].plot(history.history['loss'])
+    ax[0].plot(history.history['val_loss'])
+    ax[0].set_title('Model loss')
+    ax[0].set_ylabel('Loss')
+    ax[0].set_xlabel('Epoch')
+    ax[0].set_ylim((0,3))
+    ax[0].legend(['Train', 'Test'], loc='best')
+    ax[0].grid(axis="x",linewidth=0.5)
+    ax[0].grid(axis="y",linewidth=0.5)
+
+    
 def save_model(model, model_name):
     """
     Save the model in saved_models folder.
@@ -137,8 +154,10 @@ def save_model(model, model_name):
     """
     model.save(f'../../saved_models/{model_name}')
 
+    
 def loading_model(model_name):
     """
     Load the model in saved_model folder.
     """
     return load_model(f'../../saved_models/{model_name}')
+
