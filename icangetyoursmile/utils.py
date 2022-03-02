@@ -6,7 +6,7 @@ from tensorflow.keras.utils import image_dataset_from_directory
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
 import random
-from models import *
+from icangetyoursmile.models import *
 
 def get_dataset_tts(path, sample_size=500, image_size=(64,64), random_seed=1, test_split=0.15):
     """
@@ -40,7 +40,7 @@ def get_dataset_tts(path, sample_size=500, image_size=(64,64), random_seed=1, te
         mask_im = np.asarray(Image.open(mask_path)).tolist()
         X_test.append(mask_im)
         y_test.append(no_mask_im)
-    for number in random.sample(list(range(10000)),5):
+    for number in random.sample(photo_numbers[sample_size-test_size:sample_size],5):
         no_mask_path = f'{path}No_mask/seed{str(number).zfill(4)}.png'
         no_mask_im = np.asarray(Image.open(no_mask_path)).tolist()
         mask_path = f'{path}Mask/with-mask-default-mask-seed{str(number).zfill(4)}.png'
