@@ -146,7 +146,7 @@ def plot_loss(history, title=None):
     ax[0].grid(axis="x",linewidth=0.5)
     ax[0].grid(axis="y",linewidth=0.5)
 
-    
+
 def save_model(model, model_name):
     """
     Save the model in saved_models folder.
@@ -154,10 +154,9 @@ def save_model(model, model_name):
     """
     model.save(f'../../saved_models/{model_name}')
 
-    
+
 def loading_model(model_name):
     """
     Load the model in saved_model folder.
     """
     return load_model(f'../../saved_models/{model_name}')
-
