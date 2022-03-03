@@ -84,8 +84,26 @@ gcp_submit_training:
     --stream-logs
 
 clean:
+
 	@rm -f */version.txt
 	@rm -f .coverage
 	@rm -fr */__pycache__ __pycache__
 	@rm -fr build dist *.dist-info *.egg-info
 	@rm -fr */*.pyc
+
+set_project:
+	-@gcloud config set project ${PROJECT_ID}
+
+create_bucket:
+	-@gsutil mb -l ${REGION} -p ${PROJECT_ID} gs://${BUCKET_NAME}
+
+upload_data:
+	-@gsutil cp ${LOCAL_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}/${BUCKET_FILE_NAME}
+
+FRAMEWORK=scikit-learn
+
+
+##### Prediction API - - - - - - - - - - - - - - - - - - - - - - - - -
+
+run_api:
+	uvicorn api.fast:app --reload  # load web server with code autoreload
