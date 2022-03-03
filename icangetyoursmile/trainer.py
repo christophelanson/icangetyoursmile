@@ -32,19 +32,20 @@ def upload_model_to_gcp(run_locally=True):
 
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
-    blob = bucket.blob(BUCKET_STORAGE_FOLDER)
+
     # image log
-    print('saving image_log')
-    blob.upload_from_filename(f'./image_logs/image_log{MODEL_NAME}.pickle')
-    print('saving model')
-    rel_paths = glob.glob('./saved_models/**', recursive=True)
-    for local_path in rel_paths:
-        remote_path = f'{BUCKET_STORAGE_FOLDER}{"/".join(local_path.split(os.sep)[1:])}'
-        if local_path.isfile(local_path):
-            files = os.path.listdir()
-            for file in files:
-                blob = bucket.blob(remote_path)
-                blob.upload_from_filename(file)
+    print('uploading image_log to gcp')
+    blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{MODEL_NAME}.pickle')
+    blob.upload_from_filename(f'./image_logs/{MODEL_NAME}.pickle')
+    print('uploading model to gcp')
+    current_wd = os.getcwd()
+    for root, directories, files in os.walk('./saved_models'):
+        for name in files:
+            full_name = os.path.join(root, name).strip(current_wd)
+            print('uploading :',full_name)
+            blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{full_name.strip("./saved_models/")}')
+            blob.upload_from_filename(f'{full_name}')
+
 
 
 if __name__ == '__main__':

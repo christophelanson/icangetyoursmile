@@ -249,7 +249,7 @@ def run_full_model(define_model_name, path_to_data=None, run_locally=True,unet_p
                         callbacks = [callback_save_X_visu_predict, early_stopping]
                         )
     save_model(model, define_model_name)
-    with open(f'./image_logs/image_log{define_model_name}.pickle', 'wb') as handle:
+    with open(f'./image_logs/{define_model_name}.pickle', 'wb') as handle:
         pickle.dump(X_visu_image_log, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     if run_locally == True:
