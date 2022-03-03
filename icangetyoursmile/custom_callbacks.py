@@ -13,6 +13,7 @@ class CustomCallback(Callback):
         """
         appends a list of images with current model.predict
         """
-        y_pred = self.model.predict(self.images).astype(np.uint8)
-        self.image_log[epoch] = y_pred
-        print(f" End epoch {epoch}, saved predictions  ")
+        if epoch % 5 == 0:
+            y_pred = self.model.predict(self.images).astype(np.uint8)
+            self.image_log[epoch] = y_pred
+            print(f" End epoch {epoch}, saved predictions  ")
