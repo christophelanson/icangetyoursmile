@@ -64,14 +64,14 @@ pypi:
 # BUCKET_NAME = name of bucket on GCP
 # BUCKET_PACKAGE_FOLDER = name of GCP folder containing the package
 # BUCKET_STORAGE_FOLDER = name of GCP folder where training results and data are stored
-# PACKAGE_NAME = computer path to the folder package containing the file to run
+# PACKAGE_NAME = name of the package containing the file to run
 # FILENAME = name of file to run
 # PYTHON_VERSION = python version
 # RUNTIME_VERSION = libraries version
 # REGION = physical region of the server on which to train
 
 run_locally:
-  @python -m ${PACKAGE_NAME}.${FILENAME}
+	@python -m ${PACKAGE_NAME}.${FILENAME}
 
 gcp_submit_training:
   gcloud ai-platform jobs submit training ${JOB_NAME} \
@@ -84,12 +84,12 @@ gcp_submit_training:
     --stream-logs
 
 clean:
-  @rm -f */version.txt
-  @rm -f .coverage
-  @rm -fr */__pycache__ __pycache__
-  @rm -fr build dist *.dist-info *.egg-info
-  @rm -fr */*.pyc
 
+	@rm -f */version.txt
+	@rm -f .coverage
+	@rm -fr */__pycache__ __pycache__
+	@rm -fr build dist *.dist-info *.egg-info
+	@rm -fr */*.pyc
 
 set_project:
 	-@gcloud config set project ${PROJECT_ID}
@@ -107,4 +107,3 @@ FRAMEWORK=scikit-learn
 
 run_api:
 	uvicorn api.fast:app --reload  # load web server with code autoreload
-

@@ -92,12 +92,11 @@ def save_model(model, model_name):
     """
     model.save(f'../../saved_model/{model_name}')
 
-    
+
 def join_unet_augm_models(unet_model, augmentation_model):
     model = Sequential([
-          augmentation_model,  
+          augmentation_model,
           unet_model
           ])
     model.compile(optimizer = Adam(learning_rate = 1e-4), loss = 'mse')
     return model
-
