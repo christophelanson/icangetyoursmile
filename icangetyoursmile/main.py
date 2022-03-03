@@ -1,7 +1,8 @@
-from models import *
+from icangetyoursmile.models import *
+from PIL import Image
 
-
-def predict_face(fitted_model, X_test):
+def predict_face(fitted_model, image_location):
+    X_test = Image.open(image_location)
     if np.asarray(X_test).ndim == 3:
         return np.squeeze(fitted_model.predict(np.expand_dims(X_test,0)))
     if np.asarray(X_test).ndim == 4:
