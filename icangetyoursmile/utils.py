@@ -225,6 +225,7 @@ def loading_model(model_name):
     """
     return load_model(f'../../saved_models/{model_name}')
 
+
 def run_full_model(model_name, sample_size=500, epochs=50, image_size=(64,64), random_seed=1, test_split=0.15, batch_size=8, validation_split=0.2):
     absolute_path = os.path.dirname(os.path.dirname(os.getcwd()))
     path = absolute_path + "/raw_data"
@@ -241,3 +242,4 @@ def run_full_model(model_name, sample_size=500, epochs=50, image_size=(64,64), r
     plot_loss(results)
     save_model(model, model_name)
     return f"Model {model_name} saved, mse-score: {score}"
+
