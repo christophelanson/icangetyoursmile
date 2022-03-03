@@ -259,6 +259,7 @@ def run_full_model(define_model_name, path_to_data=None, run_locally=True,unet_p
         score = model.evaluate(X_test, y_test)
         return f"Model {define_model_name} saved, mse-score: {score}"
 
+
 def plot_results(X_visu, y_pred):
     """
     plot 2 lines of 5 graphs
