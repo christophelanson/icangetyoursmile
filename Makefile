@@ -1,3 +1,5 @@
+include .env
+
 # ----------------------------------
 #          INSTALL & TEST
 # ----------------------------------
@@ -55,26 +57,39 @@ pypi:
 	@twine upload dist/* -u $(PYPI_USERNAME)
 
 # ----------------------------------
-#      UPLOAD MODEL ONLINE
+# TRAINER : LOCAL AND GOOGLE IA FUNCTION
 # ----------------------------------
+#
+# These environment variables are define in .env
+# BUCKET_NAME = name of bucket on GCP
+# BUCKET_PACKAGE_FOLDER = name of GCP folder containing the package
+# BUCKET_STORAGE_FOLDER = name of GCP folder where training results and data are stored
+# PACKAGE_NAME = computer path to the folder package containing the file to run
+# FILENAME = name of file to run
+# PYTHON_VERSION = python version
+# RUNTIME_VERSION = libraries version
+# REGION = physical region of the server on which to train
 
-# path of the file to upload to gcp (the path of the file should be absolute or should match the directory where the make command is run)
-LOCAL_PATH=PATH_TO_FILE_train_1k.csv
+run_locally:
+  @python -m ${PACKAGE_NAME}.${FILENAME}
 
-# project id
-PROJECT_ID="le-wagon-337814"
+gcp_submit_training:
+  gcloud ai-platform jobs submit training ${JOB_NAME} \
+    --job-dir gs://${BUCKET_NAME}/${BUCKET_PACKAGE_FOLDER} \
+    --package-path ${PACKAGE_NAME} \
+    --module-name ${PACKAGE_NAME}.${FILENAME} \
+    --python-version=${PYTHON_VERSION} \
+    --runtime-version=${RUNTIME_VERSION} \
+    --region ${REGION} \
+    --stream-logs
 
-# bucket name
-BUCKET_NAME="i-can-get-your-smile"
+clean:
+  @rm -f */version.txt
+  @rm -f .coverage
+  @rm -fr */__pycache__ __pycache__
+  @rm -fr build dist *.dist-info *.egg-info
+  @rm -fr */*.pyc
 
-# bucket directory in which to store the uploaded file (we choose to name this data as a convention)
-BUCKET_FOLDER=data
-
-# name for the uploaded file inside the bucket folder (here we choose to keep the name of the uploaded file)
-# BUCKET_FILE_NAME=another_file_name_if_I_so_desire.csv
-BUCKET_FILE_NAME=$(shell basename ${LOCAL_PATH})
-
-REGION=europe-west1
 
 set_project:
 	-@gcloud config set project ${PROJECT_ID}
@@ -85,73 +100,11 @@ create_bucket:
 upload_data:
 	-@gsutil cp ${LOCAL_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}/${BUCKET_FILE_NAME}
 
-### GCP configuration - - - - - - - - - - - - - - - - - - -
-
-# /!\ you should fill these according to your account
-
-### GCP Project - - - - - - - - - - - - - - - - - - - - - -
-
-# not required here
-
-### GCP Storage - - - - - - - - - - - - - - - - - - - - - -
-
-# BUCKET_NAME=XXX
-
-##### Data  - - - - - - - - - - - - - - - - - - - - - - - -
-
-# not required here
-
-##### Training  - - - - - - - - - - - - - - - - - - - - - -
-
-# will store the packages uploaded to GCP for the training
-BUCKET_TRAINING_FOLDER = 'trainings'
-
-##### Model - - - - - - - - - - - - - - - - - - - - - - - -
-
-# not required here
-
-### GCP AI Platform - - - - - - - - - - - - - - - - - - - -
-
-##### Machine configuration - - - - - - - - - - - - - - - -
-
-# REGION=europe-west1
-
-PYTHON_VERSION=3.7
 FRAMEWORK=scikit-learn
-RUNTIME_VERSION=2.2
-
-##### Package params  - - - - - - - - - - - - - - - - - - -
-
-PACKAGE_NAME=TaxiFareModel
-FILENAME=trainer
-
-##### Job - - - - - - - - - - - - - - - - - - - - - - - - -
-
-JOB_NAME=taxi_fare_training_pipeline_$(shell date +'%Y%m%d_%H%M%S')
-
-
-run_locally:
-	@python -m ${PACKAGE_NAME}.${FILENAME}
-
-gcp_submit_training:
-	gcloud ai-platform jobs submit training ${JOB_NAME} \
-		--job-dir gs://${BUCKET_NAME}/${BUCKET_TRAINING_FOLDER} \
-		--package-path ${PACKAGE_NAME} \
-		--module-name ${PACKAGE_NAME}.${FILENAME} \
-		--python-version=${PYTHON_VERSION} \
-		--runtime-version=${RUNTIME_VERSION} \
-		--region ${REGION} \
-		--stream-logs
-
-clean:
-	@rm -f */version.txt
-	@rm -f .coverage
-	@rm -fr */__pycache__ __pycache__
-	@rm -fr build dist *.dist-info *.egg-info
-	@rm -fr */*.pyc
 
 
 ##### Prediction API - - - - - - - - - - - - - - - - - - - - - - - - -
 
 run_api:
 	uvicorn api.fast:app --reload  # load web server with code autoreload
+
