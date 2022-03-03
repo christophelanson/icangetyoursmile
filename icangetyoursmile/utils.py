@@ -4,9 +4,11 @@ from PIL import Image
 import os
 from tensorflow.keras.utils import image_dataset_from_directory
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from tensorflow.keras.models import load_model
 import random
 from icangetyoursmile.models import *
+from icangetyoursmile.custom_callbacks import CustomCallback
 
 def get_dataset_tts(path, sample_size=500, image_size=(64,64), random_seed=1, test_split=0.15):
     """
@@ -233,7 +235,13 @@ def run_full_model(model_name, sample_size=500, epochs=50, image_size=(64,64), r
 
     model = join_unet_augm_models(unet(),create_data_augmentation_model())
 
-    results = model.fit(X, y, batch_size=batch_size, epochs=epochs, use_multiprocessing=True, validation_split=validation_split)
+    X_visu_image_log = dict() #log of model predict(X_visu) for each epoch to animate fit results
+    callback_save_X_visu_predict = CustomCallback(X_visu, X_visu_image_log)
+
+    results = model.fit(X, y, batch_size=batch_size, epochs=epochs, use_multiprocessing=True,
+                        validation_split=validation_split
+                        callbacks = [callback_save_X_visu_predict]
+                        )
     #y_pred = model.predict(X_test).astype(np.uint8)
     score = model.evaluate(X_test, y_test)
     y_pred_visu = model.predict(X_visu).astype(np.uint8)
@@ -241,3 +249,35 @@ def run_full_model(model_name, sample_size=500, epochs=50, image_size=(64,64), r
     plot_loss(results)
     save_model(model, model_name)
     return f"Model {model_name} saved, mse-score: {score}"
+
+def plot_results(X_visu, y_pred):
+    """
+    plot 2 lines of 5 graphs
+    first line shows X_visu (ie X test)
+    second line shows y_pred from X_visu
+    """
+    plt.figure(figsize=(20,10))
+    nb_graphs = len(X_visu)
+    for graph_nb in range(nb_graphs):
+        plt.subplot(2,nb_graphs, graph_nb+1)
+        plt.imshow(X_visu[graph_nb])
+        plt.subplot(2,nb_graphs, graph_nb +1 +nb_graphs)
+        plt.imshow(y_pred[graph_nb])
+
+def animate_results(X_visu_image_log, image_nb):
+    """
+    animates one of X_visu images (choosen by image_nb) from X_visu_image_log
+    """
+    fig = plt.figure(figsize=(3,3))
+    frames = []
+    for i in range(len(X_visu_image_log)):
+        frames.append([plt.imshow(X_visu_image_log[i][1],animated=True)])
+    ani = animation.ArtistAnimation(fig, frames, interval=50, blit=True,repeat_delay=1000)
+    plt.show()
+
+    # To save the animation, use e.g.
+    # ani.save("movie.mp4")
+    # or
+    # writer = animation.FFMpegWriter(
+    #     fps=15, metadata=dict(artist='Me'), bitrate=1800)
+    # ani.save("movie.mp4", writer=writer)
