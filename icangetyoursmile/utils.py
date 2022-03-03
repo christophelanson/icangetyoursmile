@@ -6,7 +6,57 @@ from tensorflow.keras.utils import image_dataset_from_directory
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
 import random
+from icangetyoursmile.models import *
 
+def get_dataset_tts(path, sample_size=500, image_size=(64,64), random_seed=1, test_split=0.15):
+    """
+    get a dataset of images of required size, randomly selected
+    returns X (masked images), y (unmasked images of the same faces), and a sample test set of 5 images
+    path to data : ..../raw_data
+    the function then completes the path by adding : 64x64/Mask or No_mask (or 256x256/Mask etc.)
+    """
+    path = f'{path}/{image_size[0]}x{image_size[1]}/'
+    print(f'Loading data from {path}...')
+    random.seed(random_seed)
+    X = []
+    y = []
+    X_test = []
+    y_test = []
+    X_visu = []
+    y_visu = []
+    photo_numbers = random.sample(list(range(10000)), sample_size)
+    test_size = int(sample_size * test_split)
+    for number in photo_numbers[0:sample_size-test_size]:
+        no_mask_path = f'{path}No_mask/seed{str(number).zfill(4)}.png'
+        no_mask_im = np.asarray(Image.open(no_mask_path)).tolist()
+        mask_path = f'{path}Mask/with-mask-default-mask-seed{str(number).zfill(4)}.png'
+        mask_im = np.asarray(Image.open(mask_path)).tolist()
+        X.append(mask_im)
+        y.append(no_mask_im)
+    for number in photo_numbers[sample_size-test_size:sample_size]:
+        no_mask_path = f'{path}No_mask/seed{str(number).zfill(4)}.png'
+        no_mask_im = np.asarray(Image.open(no_mask_path)).tolist()
+        mask_path = f'{path}Mask/with-mask-default-mask-seed{str(number).zfill(4)}.png'
+        mask_im = np.asarray(Image.open(mask_path)).tolist()
+        X_test.append(mask_im)
+        y_test.append(no_mask_im)
+    for number in random.sample(photo_numbers[sample_size-test_size:sample_size],5):
+        no_mask_path = f'{path}No_mask/seed{str(number).zfill(4)}.png'
+        no_mask_im = np.asarray(Image.open(no_mask_path)).tolist()
+        mask_path = f'{path}Mask/with-mask-default-mask-seed{str(number).zfill(4)}.png'
+        mask_im = np.asarray(Image.open(mask_path)).tolist()
+        X_visu.append(mask_im)
+        y_visu.append(no_mask_im)
+
+
+    print('Done')
+    print(f'X shape : {np.asarray(X).shape}')
+    print(f'y shape : {np.asarray(y).shape}')
+    print(f'X_test shape : {np.asarray(X_test).shape}')
+    print(f'y_test shape : {np.asarray(y_test).shape}')
+    print(f'X_visu shape : {np.asarray(X_visu).shape}')
+    print(f'y_visu shape : {np.asarray(y_visu).shape}')
+    return np.array(X), np.array(y), np.array(X_test), np.array(y_test), np.array(X_visu), np.array(y_visu)
 
 def get_dataset(path, sample_size=500, image_size=(64,64), random_seed=1):
     """
@@ -134,17 +184,31 @@ def create_train_val_dataset(path_to_images,
 def plot_loss(history, title=None):
     fig, ax = plt.subplots(1,2, figsize=(20,7))
 
-    # --- LOSS ---
+    # --- LOSS 1 ---
 
     ax[0].plot(history.history['loss'])
     ax[0].plot(history.history['val_loss'])
     ax[0].set_title('Model loss')
     ax[0].set_ylabel('Loss')
     ax[0].set_xlabel('Epoch')
-    ax[0].set_ylim((0,3))
+    #ax[0].set_ylim((0,3))
     ax[0].legend(['Train', 'Test'], loc='best')
     ax[0].grid(axis="x",linewidth=0.5)
     ax[0].grid(axis="y",linewidth=0.5)
+
+    # --- LOSS 2 ---
+
+    starting_epoch = int(len(history.history['loss']) * 0.66)
+    ax[1].plot(history.history['loss'])
+    ax[1].plot(history.history['val_loss'])
+    ax[1].set_title('Model loss')
+    ax[1].set_ylabel('Loss')
+    ax[1].set_xlabel('Epoch')
+    ax[1].set_ylim((0,history.history['loss'][starting_epoch]))
+    ax[1].set_xlim((starting_epoch,len(history.history['loss']) -1))
+    ax[1].legend(['Train', 'Test'], loc='best')
+    ax[1].grid(axis="x",linewidth=0.5)
+    ax[1].grid(axis="y",linewidth=0.5)
 
 
 def save_model(model, model_name):
@@ -160,3 +224,22 @@ def loading_model(model_name):
     Load the model in saved_model folder.
     """
     return load_model(f'../../saved_models/{model_name}')
+
+
+def run_full_model(model_name, sample_size=500, epochs=50, image_size=(64,64), random_seed=1, test_split=0.15, batch_size=8, validation_split=0.2):
+    absolute_path = os.path.dirname(os.path.dirname(os.getcwd()))
+    path = absolute_path + "/raw_data"
+
+    X, y, X_test, y_test, X_visu, y_visu = get_dataset_tts(path, sample_size=sample_size, image_size=image_size, random_seed=random_seed, test_split=test_split)
+
+    model = join_unet_augm_models(unet(),create_data_augmentation_model())
+
+    results = model.fit(X, y, batch_size=batch_size, epochs=epochs, use_multiprocessing=True, validation_split=validation_split)
+    #y_pred = model.predict(X_test).astype(np.uint8)
+    score = model.evaluate(X_test, y_test)
+    y_pred_visu = model.predict(X_visu).astype(np.uint8)
+    plot_results(X_visu, y_pred_visu)
+    plot_loss(results)
+    save_model(model, model_name)
+    return f"Model {model_name} saved, mse-score: {score}"
+
