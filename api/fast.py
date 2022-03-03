@@ -4,8 +4,9 @@ from datetime import datetime
 import pytz
 import pandas as pd
 import joblib
-from icangetyoursmile.utils import load_model
+from icangetyoursmile.utils import loading_model
 from icangetyoursmile.main import predict_face, show_predicted_face
+from tensorflow.keras.models import load_model
 
 app = FastAPI()
 
@@ -22,9 +23,11 @@ def index():
     return {"greeting": "Hello world"}
 
 @app.get("/predict")
-def predict(model_name,image_location):
-    model = load_model(model_name)
+def predict(image_location):
+    #model = loading_model(model_name)
+    #model = load_model("/home/thomast/code/christophelanson/icangetyoursmile/saved_models/2Kimages_150epochs")
+    model = load_model("saved_models/2Kimages_150epochs")
     prediction = predict_face(model, image_location)
     show_predicted_face(prediction)
     #return prediction
-    return 'Done'
+    return prediction.shape
