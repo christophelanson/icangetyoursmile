@@ -32,9 +32,9 @@ def upload_model_to_gcp(model_name, run_locally=True):
     bucket = client.bucket(BUCKET_NAME)
 
     # image log
-    print('uploading image_log to gcp')
-    blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{model_name}.pickle')
-    blob.upload_from_filename(f'./image_logs/{model_name}-img_log.pickle')
+    #print('uploading image_log to gcp')
+    #blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{model_name}.pickle')
+    #blob.upload_from_filename(f'./image_logs/{model_name}-img_log.pickle')
     # model
     print('uploading model to gcp')
     current_wd = os.getcwd()

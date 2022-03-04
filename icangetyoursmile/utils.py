@@ -253,10 +253,11 @@ def run_full_model(define_model_name, run_locally=True, unet_power=3, sample_siz
                         callbacks = [callback_save_X_visu_predict, early_stopping]
                         )
     save_model(model, define_model_name)
-    with open(f'./image_logs/{define_model_name}-img_log.pickle', 'wb') as handle:
-        pickle.dump(X_visu_image_log, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     if run_locally == True:
+        with open(f'{define_model_name}-img_log.pickle', 'wb+') as handle:
+            pickle.dump(X_visu_image_log, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
         y_pred_visu = model.predict(X_visu).astype(np.uint8)
         plot_results(X_visu, y_pred_visu, y_visu)
         plot_loss(results)
