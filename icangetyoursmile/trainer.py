@@ -10,6 +10,7 @@ from icangetyoursmile.utils import run_full_model
 from dotenv import dotenv_values
 settings = dotenv_values() # dictionnary of settings in .env file
 # get environment variables
+
 BUCKET_NAME=settings['BUCKET_NAME']
 BUCKET_PACKAGE_FOLDER=settings['BUCKET_PACKAGE_FOLDER']
 BUCKET_STORAGE_FOLDER=settings['BUCKET_STORAGE_FOLDER']
@@ -49,7 +50,6 @@ def upload_model_to_gcp(model_name, run_locally=True):
 
 
 if __name__ == '__main__':
-
     model_name = f'{MODEL_NAME}-{MODEL_VERSION}'
     run_locally = False
     path_to_data = None # for notebook use None, else gcp path to data (below)
