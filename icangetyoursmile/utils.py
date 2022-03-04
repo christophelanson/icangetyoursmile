@@ -11,11 +11,14 @@ import random
 from icangetyoursmile.models import *
 from icangetyoursmile.custom_callbacks import CustomCallback
 from tensorflow.keras.callbacks import EarlyStopping
+from google.cloud import storage
 
 from dotenv import dotenv_values
 settings = dotenv_values() # dictionnary of settings in .env file
+BUCKET_NAME=settings['BUCKET_NAME']
 
-def get_dataset_tts(path_to_data, sample_size=500, image_size=(64,64), random_seed=1, test_split=0.15):
+
+def get_dataset_tts_from_local(path_to_data, sample_size=500, image_size=(64,64), random_seed=1, test_split=0.15):
     """
     get a dataset of images of required size, randomly selected
     returns X (masked images), y (unmasked images of the same faces), and a sample test set of 5 images
@@ -33,6 +36,7 @@ def get_dataset_tts(path_to_data, sample_size=500, image_size=(64,64), random_se
     y_visu = []
     photo_numbers = random.sample(list(range(10000)), sample_size)
     test_size = int(sample_size * test_split)
+
     for number in photo_numbers[0:sample_size-test_size]:
         no_mask_path = f'{path}No_mask/seed{str(number).zfill(4)}.png'
         no_mask_im = np.asarray(Image.open(no_mask_path)).tolist()
@@ -217,16 +221,16 @@ def loading_model(model_name):
     """
     return load_model(f'./saved_models/{model_name}')
 
-def run_full_model(define_model_name, path_to_data=None, run_locally=True,unet_power=3, sample_size=500, epochs=50, image_size=(64,64), random_seed=1, test_split=0.15, batch_size=8, validation_split=0.2):
+def run_full_model(define_model_name, run_locally=True, unet_power=3, sample_size=500, epochs=50, image_size=(64,64), random_seed=1, test_split=0.15, batch_size=8, validation_split=0.2):
     if run_locally == True:
         absolute_path = '/home/christophelanson/code/christophelanson/icangetyoursmile'
         #os.path.dirname(os.path.dirname(os.getcwd()))
         path_to_data = absolute_path + "/raw_data"
-    else:
-        BUCKET_NAME=settings['BUCKET_NAME']
-        path_to_data = f'gs://{BUCKET_NAME}'
+        X, y, X_test, y_test, X_visu, y_visu = get_dataset_tts_from_local(path_to_data, sample_size=sample_size, image_size=image_size, random_seed=random_seed, test_split=test_split)
 
-    X, y, X_test, y_test, X_visu, y_visu = get_dataset_tts(path_to_data, sample_size=sample_size, image_size=image_size, random_seed=random_seed, test_split=test_split)
+    else:
+        # BUCKET_NAME=settings['BUCKET_NAME'] to be deleted
+        X, y, X_test, y_test, X_visu, y_visu = get_dataset_tts_from_gcp(sample_size=sample_size, image_size=image_size, random_seed=random_seed, test_split=test_split)
 
     input_size = (image_size[0], image_size[1],3)
     model = join_unet_augm_models(unet(starting_power=unet_power, input_size=input_size),create_data_augmentation_model())
@@ -240,7 +244,7 @@ def run_full_model(define_model_name, path_to_data=None, run_locally=True,unet_p
                         callbacks = [callback_save_X_visu_predict, early_stopping]
                         )
     save_model(model, define_model_name)
-    with open(f'./image_logs/{define_model_name}.pickle', 'wb') as handle:
+    with open(f'./image_logs/{define_model_name}-img_log.pickle', 'wb') as handle:
         pickle.dump(X_visu_image_log, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     if run_locally == True:
@@ -249,6 +253,81 @@ def run_full_model(define_model_name, path_to_data=None, run_locally=True,unet_p
         plot_loss(results)
         score = model.evaluate(X_test, y_test)
         return f"Model {define_model_name} saved, mse-score: {score}"
+
+
+def get_dataset_tts_from_gcp(sample_size=500, image_size=(64,64), random_seed=1, test_split=0.15):
+    """
+    get a dataset of images of required size, randomly selected
+    returns X (masked images), y (unmasked images of the same faces), and a sample test set of 5 images
+    path to data : ..../raw_data
+    the function then completes the path by adding : 64x64/Mask or No_mask (or 256x256/Mask etc.)
+    """
+    print(f'Connecting to gcp..')
+    random.seed(random_seed)
+    X = []
+    y = []
+    X_test = []
+    y_test = []
+    X_visu = []
+    y_visu = []
+    photo_numbers = random.sample(list(range(10000)), sample_size)
+    test_size = int(sample_size * test_split)
+
+
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+    image_folder_mask = f'{image_size[0]}x{image_size[1]}/Mask'
+    image_folder_no_mask = f'{image_size[0]}x{image_size[1]}/No_mask'
+
+    for number in photo_numbers[0:sample_size-test_size]:
+        print('loading data ',str(number).zfill(4))
+        # Mask
+        blob = bucket.blob(f'{image_folder_mask}/with-mask-default-mask-seed{str(number).zfill(4)}.png')
+        blob.download_to_filename('temp.png')
+        mask_im = np.asarray(Image.open('temp.png')).tolist()
+        # No mask
+        blob = bucket.blob(f'{image_folder_no_mask}/seed{str(number).zfill(4)}.png')
+        blob.download_to_filename('temp.png')
+        no_mask_im = np.asarray(Image.open('temp.png')).tolist()
+
+        X.append(mask_im)
+        y.append(no_mask_im)
+    for number in photo_numbers[sample_size-test_size:sample_size]:
+        print('loading data ',str(number).zfill(4))
+        # Mask
+        blob = bucket.blob(f'{image_folder_mask}/with-mask-default-mask-seed{str(number).zfill(4)}.png')
+        blob.download_to_filename('temp.png')
+        mask_im = np.asarray(Image.open('temp.png')).tolist()
+        # No mask
+        blob = bucket.blob(f'{image_folder_no_mask}/seed{str(number).zfill(4)}.png')
+        blob.download_to_filename('temp.png')
+        no_mask_im = np.asarray(Image.open('temp.png')).tolist()
+
+        X_test.append(mask_im)
+        y_test.append(no_mask_im)
+    for number in random.sample(photo_numbers[sample_size-test_size:sample_size],5):
+        print('loading data ',str(number).zfill(4))
+        # Mask
+        blob = bucket.blob(f'{image_folder_mask}/with-mask-default-mask-seed{str(number).zfill(4)}.png')
+        blob.download_to_filename('temp.png')
+        mask_im = np.asarray(Image.open('temp.png')).tolist()
+        # No mask
+        blob = bucket.blob(f'{image_folder_no_mask}/seed{str(number).zfill(4)}.png')
+        blob.download_to_filename('temp.png')
+        no_mask_im = np.asarray(Image.open('temp.png')).tolist()
+
+        X_visu.append(mask_im)
+        y_visu.append(no_mask_im)
+
+
+    print('Done')
+    print(f'X shape : {np.asarray(X).shape}')
+    print(f'y shape : {np.asarray(y).shape}')
+    print(f'X_test shape : {np.asarray(X_test).shape}')
+    print(f'y_test shape : {np.asarray(y_test).shape}')
+    print(f'X_visu shape : {np.asarray(X_visu).shape}')
+    print(f'y_visu shape : {np.asarray(y_visu).shape}')
+    return np.array(X), np.array(y), np.array(X_test), np.array(y_test), np.array(X_visu), np.array(y_visu)
 
 
 def plot_results(X_visu, y_pred, y_visu):
