@@ -33,6 +33,4 @@ six>=1.14
 joblib
 memoized-property
 termcolor
-pickle
 python-dotenv
-os

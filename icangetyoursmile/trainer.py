@@ -24,7 +24,7 @@ JOB_NAME='icgys_model_traing'
 
 # calculated environment variables
 MODEL_NAME = 'full-Unet-model'
-MODEL_VERSION = 'v1'
+MODEL_VERSION = 'v1-gcp'
 
 def upload_model_to_gcp(model_name, run_locally=True):
 
