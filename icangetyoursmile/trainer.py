@@ -3,7 +3,7 @@ from google.cloud import storage
 import pandas as pd
 import numpy as np
 import glob
-from google.cloud import storage
+
 import os
 from icangetyoursmile.utils import run_full_model
 
@@ -34,7 +34,7 @@ def upload_model_to_gcp(model_name, run_locally=True):
     # image log
     print('uploading image_log to gcp')
     blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{model_name}.pickle')
-    blob.upload_from_filename(f'./image_logs/{model_name}.pickle')
+    blob.upload_from_filename(f'./image_logs/{model_name}-img_log.pickle')
     # model
     print('uploading model to gcp')
     current_wd = os.getcwd()
@@ -44,7 +44,8 @@ def upload_model_to_gcp(model_name, run_locally=True):
             print('uploading :',full_name)
             blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{full_name.strip("./saved_models/")}')
             blob.upload_from_filename(f'{full_name}')
-
+    print('upload finished\n')
+    print('all done')
 
 
 if __name__ == '__main__':
@@ -67,7 +68,7 @@ if __name__ == '__main__':
         epochs=20
         image_size=(64,64)
         batch_size=8
-    run_full_model(model_name, run_locally=run_locally, path_to_data=path_to_data,unet_power=3, sample_size=50,
+    run_full_model(model_name, run_locally=run_locally, unet_power=3, sample_size=50,
                    epochs=2, image_size=(64,64), random_seed=1,
                    test_split=0.15, batch_size=8, validation_split=0.2)
     upload_model_to_gcp(model_name, run_locally=run_locally)
