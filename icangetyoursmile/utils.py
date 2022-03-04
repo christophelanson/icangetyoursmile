@@ -12,14 +12,17 @@ from icangetyoursmile.models import *
 from icangetyoursmile.custom_callbacks import CustomCallback
 from tensorflow.keras.callbacks import EarlyStopping
 
-def get_dataset_tts(path, sample_size=500, image_size=(64,64), random_seed=1, test_split=0.15):
+from dotenv import dotenv_values
+settings = dotenv_values() # dictionnary of settings in .env file
+
+def get_dataset_tts(path_to_data, sample_size=500, image_size=(64,64), random_seed=1, test_split=0.15):
     """
     get a dataset of images of required size, randomly selected
     returns X (masked images), y (unmasked images of the same faces), and a sample test set of 5 images
     path to data : ..../raw_data
     the function then completes the path by adding : 64x64/Mask or No_mask (or 256x256/Mask etc.)
     """
-    path = f'{path}/{image_size[0]}x{image_size[1]}/'
+    path = f'{path_to_data}/{image_size[0]}x{image_size[1]}/'
     print(f'Loading data from {path}...')
     random.seed(random_seed)
     X = []
@@ -94,21 +97,6 @@ def get_dataset(path, sample_size=500, image_size=(64,64), random_seed=1):
     print(f'y shape : {np.asarray(y).shape}')
     print(f'X_test shape : {np.asarray(X_test).shape}')
     return X, y, X_test
-
-def plot_results(X_test, y_pred):
-    """
-    plots masked graphs and their predicted faces
-    """
-    plt.figure(figsize=(20,10))
-    nb_graphs = len(X_test)
-    for graph_nb in range(nb_graphs):
-        plt.subplot(2,nb_graphs, graph_nb+1)
-        plt.imshow(X_test[graph_nb])
-        plt.subplot(2,nb_graphs, graph_nb +1 +nb_graphs)
-        plt.imshow(y_pred[graph_nb])
-
-
-
 
 
 ### this is an olkd function to retrieve a batch dataset that we may use later
@@ -195,7 +183,7 @@ def plot_loss(history, title=None):
     ax[0].set_title('Model loss')
     ax[0].set_ylabel('Loss')
     ax[0].set_xlabel('Epoch')
-    #ax[0].set_ylim((0,3))
+    ax[0].set_ylim((0,history.history['loss'][2]))
     ax[0].legend(['Train', 'Test'], loc='best')
     ax[0].grid(axis="x",linewidth=0.5)
     ax[0].grid(axis="y",linewidth=0.5)
@@ -208,7 +196,7 @@ def plot_loss(history, title=None):
     ax[1].set_title('Model loss')
     ax[1].set_ylabel('Loss')
     ax[1].set_xlabel('Epoch')
-    ax[1].set_ylim((0,history.history['loss'][starting_epoch]))
+    ax[1].set_ylim((0,1.1*history.history['loss'][starting_epoch]))
     ax[1].set_xlim((starting_epoch,len(history.history['loss']) -1))
     ax[1].legend(['Train', 'Test'], loc='best')
     ax[1].grid(axis="x",linewidth=0.5)
@@ -234,6 +222,9 @@ def run_full_model(define_model_name, path_to_data=None, run_locally=True,unet_p
         absolute_path = '/home/christophelanson/code/christophelanson/icangetyoursmile'
         #os.path.dirname(os.path.dirname(os.getcwd()))
         path_to_data = absolute_path + "/raw_data"
+    else:
+        BUCKET_NAME=settings['BUCKET_NAME']
+        path_to_data = f'gs://{BUCKET_NAME}'
 
     X, y, X_test, y_test, X_visu, y_visu = get_dataset_tts(path_to_data, sample_size=sample_size, image_size=image_size, random_seed=random_seed, test_split=test_split)
 
@@ -254,25 +245,27 @@ def run_full_model(define_model_name, path_to_data=None, run_locally=True,unet_p
 
     if run_locally == True:
         y_pred_visu = model.predict(X_visu).astype(np.uint8)
-        plot_results(X_visu, y_pred_visu)
+        plot_results(X_visu, y_pred_visu, y_visu)
         plot_loss(results)
         score = model.evaluate(X_test, y_test)
         return f"Model {define_model_name} saved, mse-score: {score}"
 
 
-def plot_results(X_visu, y_pred):
+def plot_results(X_visu, y_pred, y_visu):
     """
     plot 2 lines of 5 graphs
     first line shows X_visu (ie X test)
     second line shows y_pred from X_visu
     """
-    plt.figure(figsize=(20,10))
+    plt.figure(figsize=(20,12))
     nb_graphs = len(X_visu)
     for graph_nb in range(nb_graphs):
-        plt.subplot(2,nb_graphs, graph_nb+1)
+        plt.subplot(3,nb_graphs, graph_nb+1)
         plt.imshow(X_visu[graph_nb])
-        plt.subplot(2,nb_graphs, graph_nb +1 +nb_graphs)
+        plt.subplot(3,nb_graphs, graph_nb +1 + nb_graphs)
         plt.imshow(y_pred[graph_nb])
+        plt.subplot(3,nb_graphs, graph_nb +1 + 2*nb_graphs)
+        plt.imshow(y_visu[graph_nb])
 
 def animate_results(X_visu_image_log, image_nb):
     """
