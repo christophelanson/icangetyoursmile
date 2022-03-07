@@ -1,9 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
-import pytz
-import pandas as pd
-import joblib
 import os
 from icangetyoursmile.utils import loading_model
 from icangetyoursmile.main import predict_face, show_predicted_face
