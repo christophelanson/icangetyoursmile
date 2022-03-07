@@ -13,7 +13,7 @@ class CustomCallback(Callback):
         """
         appends a list of images with current model.predict
         """
-        if epoch % 5 == 0:
+        if epoch <=50 or (epoch<=100 and epoch %2 == 0) or (epoch<200 and epoch %5 == 0) or epoch %10 == 0:
             y_pred = self.model.predict(self.images).astype(np.uint8)
-            self.image_log[epoch] = y_pred
+            self.image_log[len(self.image_log)] = y_pred
             print(f" End epoch {epoch}, saved predictions  ")
