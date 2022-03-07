@@ -13,10 +13,19 @@ from icangetyoursmile.custom_callbacks import CustomCallback
 from tensorflow.keras.callbacks import EarlyStopping
 from google.cloud import storage
 
-from dotenv import dotenv_values
-settings = dotenv_values() # dictionnary of settings in .env file
-BUCKET_NAME=settings['BUCKET_NAME']
-
+#from dotenv import dotenv_values
+#settings = dotenv_values() # dictionnary of settings in .env file
+#BUCKET_NAME=settings['BUCKET_NAME']
+JOB_NAME='icgys_model_traing'
+BUCKET_NAME='i-can-get-your-smile'
+BUCKET_PACKAGE_FOLDER='package_folder'
+BUCKET_STORAGE_FOLDER='storage'
+PACKAGE_NAME='icangetyoursmile'
+FILENAME='trainer'
+PYTHON_VERSION='3.7'
+RUNTIME_VERSION='2.8'
+REGION='europe-west1'
+BUCKET_STORAGE_FOLDER='storage'
 
 def get_dataset_tts_from_local(path_to_data, sample_size=500, image_size=(64,64), random_seed=1, test_split=0.15):
     """
@@ -244,10 +253,11 @@ def run_full_model(define_model_name, run_locally=True, unet_power=3, sample_siz
                         callbacks = [callback_save_X_visu_predict, early_stopping]
                         )
     save_model(model, define_model_name)
-    with open(f'./image_logs/{define_model_name}-img_log.pickle', 'wb') as handle:
-        pickle.dump(X_visu_image_log, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     if run_locally == True:
+        with open(f'{define_model_name}-img_log.pickle', 'wb+') as handle:
+            pickle.dump(X_visu_image_log, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
         y_pred_visu = model.predict(X_visu).astype(np.uint8)
         plot_results(X_visu, y_pred_visu, y_visu)
         plot_loss(results)

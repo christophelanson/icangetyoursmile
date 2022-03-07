@@ -12,6 +12,7 @@ scikit-image
 tensorflow
 Pillow
 matplotlib
+datetime
 
 # tests/linter
 black
@@ -33,6 +34,4 @@ six>=1.14
 joblib
 memoized-property
 termcolor
-pickle
 python-dotenv
-os

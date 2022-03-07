@@ -73,8 +73,9 @@ pypi:
 run_locally:
 	@python -m ${PACKAGE_NAME}.${FILENAME}
 
+
 gcp_submit_training:
-  gcloud ai-platform jobs submit training ${JOB_NAME} \
+	gcloud ai-platform jobs submit training ${JOB_NAME}$(shell date +'%Y%m%d_%H%M%S') \
     --job-dir gs://${BUCKET_NAME}/${BUCKET_PACKAGE_FOLDER} \
     --package-path ${PACKAGE_NAME} \
     --module-name ${PACKAGE_NAME}.${FILENAME} \

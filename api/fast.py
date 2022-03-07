@@ -11,6 +11,9 @@ from tensorflow.keras.models import load_model
 from google.cloud import storage
 from dotenv import dotenv_values
 import matplotlib
+import numpy as np
+from datetime import datetime
+
 settings = dotenv_values() # dictionnary of settings in .env file
 BUCKET_NAME=settings['BUCKET_NAME']
 BUCKET_STORAGE_FOLDER=settings['BUCKET_STORAGE_FOLDER']
@@ -46,8 +49,8 @@ def download_model_from_gcp(model_name="full-Unet-model"):
     model = load_model(folder)
     return model
 
-def save_prediction(prediction_array, model_name):
-    matplotlib.image.imsave(f'{model_name}.png', prediction_array)
+# do not work in predict function, def save_prediction(prediction_array, saving_location):
+#     matplotlib.image.imsave(saving_location, prediction_array)
 
 
 def upload_prediction_to_gcp(prediction_name):
@@ -56,16 +59,18 @@ def upload_prediction_to_gcp(prediction_name):
 
     blob = bucket.blob(f'{BUCKET_PREDICTION_FOLDER}/{prediction_name}')
     blob.upload_from_filename(f'./{prediction_name}')
-
+    return blob
 
 
 @app.get("/predict")
-def predict(define_prediction_name, image_location, model_name="full-Unet-model"):
+def predict(image_location, model_name="U-net-christophe"):
     model = download_model_from_gcp(model_name)
-    prediction = predict_face(model, image_location)
+    prediction = predict_face(model, image_location).astype(np.uint8)
     #save_prediction(prediction, model_name) #transform&save in the save time
-    saving_location = f"{model_name}.png"
-    #need to transform numpy array before saving. use pillow and save .png
-    upload_prediction_to_gcp(saving_location)
+    now = datetime.now()
+    current_time = now.strftime("%Hh%M")
+    saving_location = f"{model_name}_{current_time}.png"
+    matplotlib.image.imsave(saving_location, prediction)
+    blob = upload_prediction_to_gcp(saving_location)
     #define full url location, with blob ? to look gcp
-    return prediction.shape #{"saving_location": saving_location}
+    return saving_location #{"saving_location": saving_location}
