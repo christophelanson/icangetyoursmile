@@ -23,17 +23,18 @@ BUCKET_STORAGE_FOLDER='storage'
 
 # calculated environment variables
 MODEL_NAME = 'full-Unet-model'
-MODEL_VERSION = 'v1-gcp'
+MODEL_VERSION = 'img10k-epoch2000-pwr3-gcp'
 
 def upload_model_to_gcp(model_name, run_locally=True):
 
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
 
-    # image log
-    #print('uploading image_log to gcp')
-    #blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{model_name}.pickle')
-    #blob.upload_from_filename(f'./image_logs/{model_name}-img_log.pickle')
+    if run_locally==True:
+        # image log
+        print('uploading image_log to gcp')
+        blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{model_name}.pickle')
+        blob.upload_from_filename(f'./image_logs/{model_name}_img_log.pickle')
     # model
     print('uploading model to gcp')
     current_wd = os.getcwd()
@@ -62,11 +63,11 @@ if __name__ == '__main__':
         path_to_data = f'https://console.cloud.google.com/storage/browser/{BUCKET_NAME}'
         # gcp ai model parameters
         unet_power=3
-        sample_size=20
-        epochs=20
+        sample_size=10000
+        epochs=2000
         image_size=(64,64)
         batch_size=8
-    run_full_model(model_name, run_locally=run_locally, unet_power=3, sample_size=50,
-                   epochs=2, image_size=(64,64), random_seed=1,
-                   test_split=0.15, batch_size=8, validation_split=0.2)
+    run_full_model(model_name, run_locally=run_locally, unet_power=unet_power, sample_size=sample_size,
+                   epochs=epochs, image_size=image_size, random_seed=2,
+                   test_split=0.15, batch_size=batch_size, validation_split=0.2)
     upload_model_to_gcp(model_name, run_locally=run_locally)
