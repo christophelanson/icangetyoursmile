@@ -79,18 +79,11 @@ gcp_submit_training:
     --job-dir gs://${BUCKET_NAME}/${BUCKET_PACKAGE_FOLDER} \
     --package-path ${PACKAGE_NAME} \
     --module-name ${PACKAGE_NAME}.${FILENAME} \
+		--scale-tier BASIC_TPU \
     --python-version=${PYTHON_VERSION} \
     --runtime-version=${RUNTIME_VERSION} \
     --region ${REGION} \
     --stream-logs
-
-clean:
-
-	@rm -f */version.txt
-	@rm -f .coverage
-	@rm -fr */__pycache__ __pycache__
-	@rm -fr build dist *.dist-info *.egg-info
-	@rm -fr */*.pyc
 
 set_project:
 	-@gcloud config set project ${PROJECT_ID}

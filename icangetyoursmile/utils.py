@@ -1,3 +1,4 @@
+from tkinter import PROJECTING
 import numpy as np
 import PIL
 from PIL import Image
@@ -26,6 +27,7 @@ PYTHON_VERSION='3.7'
 RUNTIME_VERSION='2.8'
 REGION='europe-west1'
 BUCKET_STORAGE_FOLDER='storage'
+PROJECT_ID='le-wagon-337814'
 
 def get_dataset_tts_from_local(path_to_data, sample_size=500, image_size=(64,64), random_seed=1, test_split=0.15):
     """
@@ -246,13 +248,18 @@ def run_full_model(define_model_name, run_locally=True, unet_power=3, sample_siz
 
     X_visu_image_log = dict() #log of model predict(X_visu) for each epoch to animate fit results
     callback_save_X_visu_predict = CustomCallback(X_visu, X_visu_image_log)
-    early_stopping = EarlyStopping(patience= 40, restore_best_weights=True)
+    early_stopping = EarlyStopping(patience= 1000, restore_best_weights=True)
 
     results = model.fit(X, y, batch_size=batch_size, epochs=epochs, use_multiprocessing=True,
                         validation_split=validation_split,
                         callbacks = [callback_save_X_visu_predict, early_stopping]
                         )
     save_model(model, define_model_name)
+    if run_locally == True:
+        # save image log
+        with open(f'./image_logs/{define_model_name}_img_log.pickle', 'wb') as handle:
+            pickle.dump(X_visu_image_log, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 
     if run_locally == True:
         with open(f'{define_model_name}-img_log.pickle', 'wb+') as handle:
@@ -284,7 +291,7 @@ def get_dataset_tts_from_gcp(sample_size=500, image_size=(64,64), random_seed=1,
     test_size = int(sample_size * test_split)
 
 
-    client = storage.Client()
+    client = storage.Client(project=PROJECT_ID)
     bucket = client.bucket(BUCKET_NAME)
     image_folder_mask = f'{image_size[0]}x{image_size[1]}/Mask'
     image_folder_no_mask = f'{image_size[0]}x{image_size[1]}/No_mask'
