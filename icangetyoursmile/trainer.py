@@ -19,6 +19,7 @@ PYTHON_VERSION='3.7'
 RUNTIME_VERSION='2.8'
 REGION='europe-west1'
 BUCKET_STORAGE_FOLDER='storage'
+PROJECT_ID='le-wagon-337814'
 
 
 # calculated environment variables
@@ -27,7 +28,7 @@ MODEL_VERSION = 'img10k-epoch2000-pwr3-gcp'
 
 def upload_model_to_gcp(model_name, run_locally=True):
 
-    client = storage.Client()
+    client = storage.Client(project=PROJECT_ID)
     bucket = client.bucket(BUCKET_NAME)
 
     if run_locally==True:
