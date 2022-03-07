@@ -9,7 +9,7 @@ from icangetyoursmile.utils import run_full_model
 
 #from dotenv import dotenv_values
 #settings = dotenv_values() # dictionnary of settings in .env file
-# get environment variables
+# environment variables defined here
 JOB_NAME='icgys_model_traing'
 BUCKET_NAME='i-can-get-your-smile'
 BUCKET_PACKAGE_FOLDER='package_folder'
