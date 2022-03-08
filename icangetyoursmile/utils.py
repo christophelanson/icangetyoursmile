@@ -10,7 +10,7 @@ import matplotlib.animation as animation
 from tensorflow.keras.models import load_model
 import random
 from icangetyoursmile.models import *
-from icangetyoursmile.custom_callbacks import CustomCallback
+from icangetyoursmile.custom_callbacks import CustomCallback, SaveModelCallback
 from tensorflow.keras.callbacks import EarlyStopping
 from google.cloud import storage
 
@@ -248,11 +248,12 @@ def run_full_model(define_model_name, run_locally=True, unet_power=3, sample_siz
 
     X_visu_image_log = dict() #log of model predict(X_visu) for each epoch to animate fit results
     callback_save_X_visu_predict = CustomCallback(X_visu, X_visu_image_log)
+    callback_save = SaveModelCallback(define_model_name)
     early_stopping = EarlyStopping(patience= 1000, restore_best_weights=True)
 
     results = model.fit(X, y, batch_size=batch_size, epochs=epochs, use_multiprocessing=True,
                         validation_split=validation_split,
-                        callbacks = [callback_save_X_visu_predict, early_stopping]
+                        callbacks = [callback_save_X_visu_predict, callback_save, early_stopping]
                         )
     save_model(model, define_model_name)
     if run_locally == True:
@@ -262,8 +263,6 @@ def run_full_model(define_model_name, run_locally=True, unet_power=3, sample_siz
 
 
     if run_locally == True:
-        with open(f'{define_model_name}-img_log.pickle', 'wb+') as handle:
-            pickle.dump(X_visu_image_log, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         y_pred_visu = model.predict(X_visu).astype(np.uint8)
         plot_results(X_visu, y_pred_visu, y_visu)
