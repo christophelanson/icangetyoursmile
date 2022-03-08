@@ -10,7 +10,7 @@ import matplotlib.animation as animation
 from tensorflow.keras.models import load_model
 import random
 from icangetyoursmile.models import *
-from icangetyoursmile.custom_callbacks import CustomCallback, SaveModelCallback
+from icangetyoursmile.custom_callbacks import CustomCallback    #, SaveModelCallback
 from tensorflow.keras.callbacks import EarlyStopping
 from google.cloud import storage
 
@@ -232,6 +232,7 @@ def loading_model(model_name):
     """
     return load_model(f'./saved_models/{model_name}')
 
+
 def run_full_model(define_model_name, run_locally=True, unet_power=3, sample_size=500, epochs=50, image_size=(64,64), random_seed=1, test_split=0.15, batch_size=8, validation_split=0.2):
     if run_locally == True:
         absolute_path = '/home/christophelanson/code/christophelanson/icangetyoursmile'
@@ -248,12 +249,12 @@ def run_full_model(define_model_name, run_locally=True, unet_power=3, sample_siz
 
     X_visu_image_log = dict() #log of model predict(X_visu) for each epoch to animate fit results
     callback_save_X_visu_predict = CustomCallback(X_visu, X_visu_image_log)
-    callback_save = SaveModelCallback(define_model_name)
+    #callback_save = SaveModelCallback(define_model_name)
     early_stopping = EarlyStopping(patience= 1000, restore_best_weights=True)
 
     results = model.fit(X, y, batch_size=batch_size, epochs=epochs, use_multiprocessing=True,
                         validation_split=validation_split,
-                        callbacks = [callback_save_X_visu_predict, callback_save, early_stopping]
+                        callbacks = [callback_save_X_visu_predict, early_stopping] #callback_save,
                         )
     save_model(model, define_model_name)
     if run_locally == True:
