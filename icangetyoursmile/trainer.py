@@ -27,6 +27,7 @@ PROJECT_ID='le-wagon-337814'
 MODEL_NAME = 'full-Unet-model'
 MODEL_VERSION = 'img10k-epoch2000-pwr3-gcp'
 
+
 def upload_model_to_gcp(model_name, run_locally=True):
 
     client = storage.Client(project=PROJECT_ID)
