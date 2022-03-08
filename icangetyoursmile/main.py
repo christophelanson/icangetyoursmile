@@ -1,7 +1,6 @@
 from icangetyoursmile.models import *
 from PIL import Image
 
-
 def predict_face(fitted_model, image_location):
     X_test = Image.open(image_location)
 
