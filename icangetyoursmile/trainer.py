@@ -39,15 +39,16 @@ def upload_model_to_gcp(model_name, run_locally=True):
         blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{model_name}.pickle')
         blob.upload_from_filename(f'./image_logs/{model_name}_img_log.pickle')
     # model
-    print('uploading model to gcp')
+    print('looking for files to upload')
     current_wd = os.getcwd()
     for root, directories, files in os.walk('./saved_models'):
         for name in files:
             full_name = os.path.join(root.replace(current_wd,""), name)
-            print('uploading :',full_name)
-            blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{full_name.strip("./saved_models/")}')
-            blob.upload_from_filename(f'{full_name}')
-    print('upload finished\n')
+            if model_name in full_name: # otherwise will upload ALL saved models
+                print('uploading :',full_name)
+                blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{full_name.strip("./saved_models/")}')
+                blob.upload_from_filename(f'{full_name}')
+    print('upload finished')
     print('all done')
 
 
@@ -65,11 +66,11 @@ if __name__ == '__main__':
     if run_locally == False :
         path_to_data = f'https://console.cloud.google.com/storage/browser/{BUCKET_NAME}'
         # gcp ai model parameters
-        unet_power=3
+        unet_power=5
         sample_size=10000
         epochs=2000
         image_size=(64,64)
-        batch_size=8
+        batch_size=32
     run_full_model(model_name, run_locally=run_locally, unet_power=unet_power, sample_size=sample_size,
                    epochs=epochs, image_size=image_size, random_seed=2,
                    test_split=0.15, batch_size=batch_size, validation_split=0.2)

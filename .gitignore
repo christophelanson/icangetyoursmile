@@ -5,3 +5,6 @@
 raw_data/
 *.csv
 **/__pycache__/
+notebooks/christophelanson/saved_models
+notebooks/christophelanson/image_logs
+saved_models/
