@@ -1,5 +1,8 @@
 from optparse import Values
 from google.cloud import storage
+
+import pandas as pd
+
 import numpy as np
 import glob
 
@@ -8,6 +11,7 @@ from icangetyoursmile.utils import run_full_model
 
 #from dotenv import dotenv_values
 #settings = dotenv_values() # dictionnary of settings in .env file
+
 # environment variables defined here
 JOB_NAME='icgys_model_traing'
 BUCKET_NAME='i-can-get-your-smile'
