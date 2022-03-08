@@ -2,9 +2,8 @@ from optparse import Values
 from google.cloud import storage
 import numpy as np
 import glob
-
 import os
-from icangetyoursmile.utils import run_full_model
+import icangetyoursmile.utils #import run_full_model
 
 #from dotenv import dotenv_values
 #settings = dotenv_values() # dictionnary of settings in .env file
@@ -69,7 +68,7 @@ if __name__ == '__main__':
         epochs=2000
         image_size=(64,64)
         batch_size=8
-    run_full_model(model_name, run_locally=run_locally, unet_power=unet_power, sample_size=sample_size,
+    icangetyoursmile.utils.run_full_model(model_name, run_locally=run_locally, unet_power=unet_power, sample_size=sample_size,
                    epochs=epochs, image_size=image_size, random_seed=2,
                    test_split=0.15, batch_size=batch_size, validation_split=0.2)
     upload_model_to_gcp(model_name, run_locally=run_locally)
