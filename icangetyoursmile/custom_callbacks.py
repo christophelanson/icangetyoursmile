@@ -1,5 +1,7 @@
 from tensorflow.keras.callbacks import Callback
 import numpy as np
+from icangetyoursmile.trainer import upload_model_to_gcp
+from icangetyoursmile.trainer import MODEL_NAME, MODEL_VERSION
 
 class CustomCallback(Callback):
 
@@ -17,3 +19,17 @@ class CustomCallback(Callback):
             y_pred = self.model.predict(self.images).astype(np.uint8)
             self.image_log[len(self.image_log)] = y_pred
             print(f" End epoch {epoch}, saved predictions  ")
+
+
+class SaveModelCallback(Callback):
+
+    def __init__(self, model_name):
+      #  self.model = model
+        super().__init__()
+        self.model_name = model_name
+
+    def on_epoch_end(self, epoch, logs=None):
+
+        if epoch %50 == 0:
+            self.model.save(f'./saved_models/{model_name}')
+            upload_model_to_gcp(model_name, run_locally=False)
