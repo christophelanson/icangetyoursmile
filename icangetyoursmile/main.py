@@ -1,6 +1,7 @@
 from icangetyoursmile.models import *
 from PIL import Image
 
+
 def predict_face(fitted_model, image_location):
     X_test = Image.open(image_location)
 
@@ -10,7 +11,7 @@ def predict_face(fitted_model, image_location):
         return np.squeeze(fitted_model.predict(X_test))
     return "wrong X_test dimension"
 
-  
+
 def show_predicted_face(model_result):
     """
     plot one image
