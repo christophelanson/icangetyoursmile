@@ -77,6 +77,14 @@ def get_image_from_gcp(file_name="seed0001"):
     im = Image.open('temp.png')
     return im
 
+def get_prediction_from_gcp(file_name="seed0001"):
+    client = get_client()
+    bucket = client.bucket(f"{BUCKET_NAME}")
+    blob = bucket.blob(f'predictions/{file_name}.png')
+    blob.download_to_filename('temp.png')
+    im = Image.open('temp.png')
+    return im
+
 @app.get("/predict")
 def predict(image_name, model_name="U-net-christophe",image_size=(64,64)):
     #get model from GCP
