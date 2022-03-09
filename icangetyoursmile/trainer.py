@@ -8,6 +8,7 @@ import glob
 
 import os
 from icangetyoursmile.utils import run_full_model
+from tensorflow.keras.models import load_model
 
 #from dotenv import dotenv_values
 #settings = dotenv_values() # dictionnary of settings in .env file
@@ -77,3 +78,20 @@ if __name__ == '__main__':
                    epochs=epochs, image_size=image_size, random_seed=2,
                    test_split=0.15, batch_size=batch_size, validation_split=0.2)
     upload_model_to_gcp(model_name, run_locally=run_locally)
+
+
+def download_model_from_gcp(model_name="full-Unet-model"):
+    client = storage.Client(project=PROJECT_ID)
+    bucket = client.bucket(f"{BUCKET_NAME}")
+
+    folder = model_name
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+        os.makedirs(folder + "/variables" )
+
+    blobs = bucket.list_blobs(prefix=f"storage/{model_name}/")
+    for i, blob in enumerate(blobs):
+        blob = blob
+        blob.download_to_filename(folder + "/" + blob.name.replace(f'storage/{model_name}/',""))
+    model = load_model(folder)
+    return model
