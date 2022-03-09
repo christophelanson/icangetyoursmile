@@ -1,10 +1,13 @@
 from optparse import Values
 from google.cloud import storage
+
+import pandas as pd
+
 import numpy as np
 import glob
 import os
 import icangetyoursmile.utils #import run_full_model
-
+from tensorflow.keras.models import load_model
 #from dotenv import dotenv_values
 #settings = dotenv_values() # dictionnary of settings in .env file
 # environment variables defined here
@@ -37,15 +40,16 @@ def upload_model_to_gcp(model_name, run_locally=True):
         blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{model_name}.pickle')
         blob.upload_from_filename(f'./image_logs/{model_name}_img_log.pickle')
     # model
-    print('uploading model to gcp')
+    print('looking for files to upload')
     current_wd = os.getcwd()
     for root, directories, files in os.walk('./saved_models'):
         for name in files:
             full_name = os.path.join(root.replace(current_wd,""), name)
-            print('uploading :',full_name)
-            blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{full_name.strip("./saved_models/")}')
-            blob.upload_from_filename(f'{full_name}')
-    print('upload finished\n')
+            if model_name in full_name: # otherwise will upload ALL saved models
+                print('uploading :',full_name)
+                blob = bucket.blob(f'{BUCKET_STORAGE_FOLDER}/{full_name.strip("./saved_models/")}')
+                blob.upload_from_filename(f'{full_name}')
+    print('upload finished')
     print('all done')
 
 
@@ -63,7 +67,7 @@ if __name__ == '__main__':
     if run_locally == False :
         path_to_data = f'https://console.cloud.google.com/storage/browser/{BUCKET_NAME}'
         # gcp ai model parameters
-        unet_power=3
+        unet_power=5
         sample_size=10000
         epochs=2000
         image_size=(64,64)
@@ -72,3 +76,20 @@ if __name__ == '__main__':
                    epochs=epochs, image_size=image_size, random_seed=2,
                    test_split=0.15, batch_size=batch_size, validation_split=0.2)
     upload_model_to_gcp(model_name, run_locally=run_locally)
+
+
+def download_model_from_gcp(model_name="full-Unet-model"):
+    client = storage.Client(project=PROJECT_ID)
+    bucket = client.bucket(f"{BUCKET_NAME}")
+
+    folder = model_name
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+        os.makedirs(folder + "/variables" )
+
+    blobs = bucket.list_blobs(prefix=f"storage/{model_name}/")
+    for i, blob in enumerate(blobs):
+        blob = blob
+        blob.download_to_filename(folder + "/" + blob.name.replace(f'storage/{model_name}/',""))
+    model = load_model(folder)
+    return model

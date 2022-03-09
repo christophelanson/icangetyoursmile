@@ -6,3 +6,8 @@ raw_data/
 *.csv
 **/__pycache__/
 keys.json
+notebooks/christophelanson/saved_models/*
+notebooks/RomainCharleux/saved_models/*
+notebooks/christophelanson/image_logs/*
+saved_models/
+backup/*
