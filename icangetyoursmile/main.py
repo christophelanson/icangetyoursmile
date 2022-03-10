@@ -1,4 +1,5 @@
-from icangetyoursmile.models import *
+import numpy as np
+import matplotlib.pyplot as plt
 from PIL import Image
 
 def predict_face(fitted_model, image_location, image_size=(64,64)):

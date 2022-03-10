@@ -6,6 +6,7 @@ COPY 2Kimages_150epochs /2Kimages_150epochs
 COPY icangetyoursmile /icangetyoursmile
 COPY api /api
 COPY requirements.txt /requirements.txt
+COPY keys.json /keys.json
 
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
