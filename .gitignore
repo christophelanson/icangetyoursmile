@@ -7,5 +7,6 @@ raw_data/
 **/__pycache__/
 notebooks/christophelanson/saved_models/*
 notebooks/christophelanson/image_logs/*
+notebooks/christophelanson/GAN_gen_img/*
 saved_models/
 backup/*
