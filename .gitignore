@@ -9,5 +9,6 @@ keys.json
 notebooks/christophelanson/saved_models/*
 notebooks/RomainCharleux/saved_models/*
 notebooks/christophelanson/image_logs/*
+notebooks/christophelanson/GAN_gen_img/*
 saved_models/
 backup/*
