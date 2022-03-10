@@ -137,6 +137,7 @@ def vae_model(encoder=encoder(), decoder=decoder()):
 #    - Plot the 3 differents losses
 #    - Recreate model from saved models
 #    - Plot original image vs predicted image
+#    - Generate average face from the datasett
 
 
 def standardize(X):
@@ -193,7 +194,7 @@ def plot_predicted_image(vae_fitted_encoder, vae_fitted_decoder, X, number):
     For the vae encoder and decoder, it's required to entry an already fitted model.
 
     X is the original input for the vae, not standardize.
-    Set an number to display one image from the dataset
+    Set an number to display an image from the dataset (by rank)
     """
     # Standardize X and predict image
     X_std = standardize(X)
@@ -208,3 +209,41 @@ def plot_predicted_image(vae_fitted_encoder, vae_fitted_decoder, X, number):
     plt.imshow(res_decoder[number])
     plt.title("Predicted Image")
     plt.show()
+
+def average_face(vae_decoder_fitted, latent_dim=16):
+    """
+    Generate the average face from a already fitted vae_decoder and the number
+    of dimensions of a latent_dim
+    """
+    X = np.zeros((1,latent_dim))
+    face = vae_decoder_fitted.predict(X).squeeze()
+    plt.imshow(face)
+    plt.show()
+
+
+def face_id_card(vae_decoder_fitted, params, latent_dim=16, numbers=[-2, -0.5, 0, 0.5, 2]):
+    """
+    Plot 5 faces per latent dimension with updated params from -2 to 2.
+    vae_decoder_fitted has to be a decoder fitted model.
+
+    Params is the parameter to modify by the numbers [-2, 2]. The numbers of
+    parameters depends of the latent dimension: number of params = latent dimension.
+
+    Numbers is a list of numbers apply to the params to modify the face.
+
+    """
+    # Set the X to nd.array of dimension latent_dim of zeros
+    X = np.zeros((1,latent_dim))
+
+    # Plot the faces with updated numbers of the params
+    plt.figure(figsize=(40,60))
+
+    for idx, number in enumerate(numbers):
+        X[0, params] = number
+        face = vae_decoder_fitted.predict(X).squeeze()
+
+        plt.subplot(1,5, idx+1)
+        plt.imshow(face)
+        plt.title(f'{numbers[idx]}')
+        plt.axis("off")
+        plt.show()
